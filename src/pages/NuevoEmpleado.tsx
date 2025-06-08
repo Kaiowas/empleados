@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form";
+import clsx from 'clsx';
 import EmpleadosService from "../services/EmpleadosService";
 import UsuariosService from "../services/UsuariosService";
 import Usuario from "../models/Usuario";
@@ -7,7 +8,20 @@ import { useNavigate } from "react-router-dom";
 
 const NuevoEmpleado = () => {
 
-    const { register, handleSubmit } = useForm();
+    const autoCompleteForm = false;
+
+    const { register, handleSubmit, formState } = useForm({
+        mode: "onChange",
+        defaultValues: autoCompleteForm
+            ? {
+                title: "Título de prueba",
+                userId: 1,
+                body: "Integer facilisis viverra consequat. Suspendisse ultricies justo lorem, vel posuere nunc euismod ac. Curabitur et quam at nulla dictum eleifend. Nulla eu gravida lorem. Praesent."
+            }
+            : {}
+    });
+
+
 
     const navigate = useNavigate();
 
@@ -41,17 +55,24 @@ const NuevoEmpleado = () => {
                 <div className="row g-3">
                     <div className="col">
                         <label htmlFor="inputTitle" className="form-label text-capitalize">title <span className="text-danger">*</span></label>
-                        <input type="text" className="form-control form-control-lg" autoComplete="false" autoFocus id="inputTitle" {...register('title', { required: true })} />
+                        <input
+                            type="text"
+                            className={`form-control form-control-lg ${formState.touchedFields?.title && formState.errors?.title === undefined ? "is-valid" : "is-invalid"}`}
+                            autoComplete="false"
+                            autoFocus
+                            id="inputTitle"
+                            {...register('title', { required: true, minLength: 15 })}
+                        />
                     </div>
                     <div className="col">
                         <label htmlFor="inputUserId" className="form-label text-capitalize">user <span className="text-danger">*</span></label>
                         <select
                             id="inputUserId"
-                            className="form-select form-select-lg"
+                            className={`form-select form-select-lg ${formState.touchedFields?.userId && formState.errors?.userId === undefined ? "is-valid" : "is-invalid"}`}
                             {...register('userId', { required: true })}
                         >
-                            <option value="">Seleccione un usuario</option>
-                            {arrUsuarios &&
+                            <option value="">Select User</option>
+                            {usuariosLoaded && arrUsuarios &&
                                 arrUsuarios.map((item) => (
                                     <option key={item.id} value={item.id}>
                                         {item.name} ({item.username})
@@ -64,15 +85,20 @@ const NuevoEmpleado = () => {
 
                 <div className="mt-3">
                     <label htmlFor="inputBody" className="form-label text-capitalize">body <span className="text-danger">*</span></label>
-                    <textarea className="form-control" id="inputBody" style={{ maxHeight: "200px" }} aria-label="With textarea" {...register('body', { required: true })}></textarea>
-                    {/* <input type="text" className="form-control" id="inputBody" {...register('body')} /> */}
+                    <textarea className={`form-control form-control-sm ${formState.touchedFields?.body && formState.errors?.body === undefined ? "is-valid" : "is-invalid"}`} id="inputBody" style={{ maxHeight: "150px", height: "100px" }} aria-label="With textarea" {...register('body', { required: true, minLength: 20, maxLength: 200 })}></textarea>
                 </div>
                 <div className="mt-3 d-grid">
-                    <button type="submit" className="btn btn-primary btn-lg shadow">Guardar</button>
+                    <button
+                        type="submit"
+                        className={clsx(`btn  btn-lg shadow fw-bold`, formState.isValid ? `btn-primary` : `btn-danger opacity-25`)}
+                        disabled={!formState.isValid}
+                    >
+                        Guardar
+                    </button>
                 </div>
 
-            </form>
-        </div>
+            </form >
+        </div >
     );
 }
 

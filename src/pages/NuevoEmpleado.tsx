@@ -7,8 +7,12 @@ import Usuario from "../models/Usuario";
 import { useNavigate } from "react-router-dom";
 
 const NuevoEmpleado = () => {
+    const debug = false;
+    const autoCompleteForm = debug ? true : false;
 
-    const autoCompleteForm = false;
+    const navigate = useNavigate();
+    const [arrUsuarios, setArrUsuarios] = useState<Usuario[]>([]);
+    const [usuariosLoaded, setUsuariosLoaded] = useState<boolean>(false);
 
     const { register, handleSubmit, formState } = useForm({
         mode: "onChange",
@@ -21,12 +25,6 @@ const NuevoEmpleado = () => {
             : {}
     });
 
-    const navigate = useNavigate();
-
-    const [arrUsuarios, setArrUsuarios] = useState<Usuario[]>([]);
-
-    const [usuariosLoaded, setUsuariosLoaded] = useState<boolean>(false);
-
     const fetchData = async () => {
         if (!usuariosLoaded) {
             const response = await (new UsuariosService()).getAll();
@@ -37,10 +35,12 @@ const NuevoEmpleado = () => {
 
     const onSubmit = async (data: any) => {
         console.log(data);
-        return
-        await (new EmpleadosService()).create(data);
-        alert('Empleado creado correctamente');
-        navigate('/');
+        if (!debug) {
+            await (new EmpleadosService()).create(data);
+            alert('Empleado creado correctamente');
+            navigate('/');
+        }
+
     }
 
     useEffect(() => {
@@ -68,11 +68,12 @@ const NuevoEmpleado = () => {
                             id="inputUserId"
                             className={`form-select form-select-lg ${formState.touchedFields?.userId && formState.errors?.userId === undefined ? "is-valid" : "is-invalid"}`}
                             {...register('userId', { required: true })}
+                            defaultValue={autoCompleteForm ? "2" : ""}
                         >
                             <option value="">Select User</option>
-                            {usuariosLoaded && arrUsuarios &&
+                            {arrUsuarios &&
                                 arrUsuarios.map((item) => (
-                                    <option key={item.id} value={item.id}>
+                                    <option key={item.id} value={item.id} >
                                         {item.name} ({item.username})
                                     </option>
                                 ))

@@ -5,11 +5,14 @@ import Usuario from "../models/Usuario";
 export default class EmpleadosService {
 
     private baseUrl: string = 'https://jsonplaceholder.typicode.com'
-    //https://jsonplaceholder.typicode.com/users/1/posts
-
+    private limit: number = 15
 
     getAll = async () => {
-        return await axios.get(`${this.baseUrl}/posts`);
+        return await axios.get(`${this.baseUrl}/posts`, {
+            params: {
+                _limit: this.limit ?? null
+            }
+        });
     }
 
     getByUser = async (usuario: Usuario) => {

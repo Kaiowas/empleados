@@ -21,8 +21,6 @@ const NuevoEmpleado = () => {
             : {}
     });
 
-
-
     const navigate = useNavigate();
 
     const [arrUsuarios, setArrUsuarios] = useState<Usuario[]>([]);

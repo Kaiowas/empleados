@@ -22,7 +22,7 @@ const CardComments = (props: NavFilterProps) => {
                 <h5 className="text-center text-uppercase text-dark fw-bold d-block border-bottom border-secondary pb-1 mb-2">Comments ({arrComments.length})</h5>
                 <p className="text-center  text-secondary small  m-0 p-1 lh-sm d-none">{empleado.title}</p>
             </div>
-            <ol className="list-group " style={{ maxHeight: '157px', overflowY: 'auto' }}>
+            <ol className="list-group " style={{ maxHeight: '136px', overflowY: 'auto' }}>
 
                 {Array.isArray(arrComments) && arrComments.map((comment: Comment) => (
 

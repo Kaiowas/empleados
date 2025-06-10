@@ -19,6 +19,10 @@ export default class EmpleadosService {
         return await axios.get(`${this.baseUrl}/users/${usuario.id}/posts`);
     }
 
+    getCommentsByPost = async (empleado: Empleado) => {
+        return await axios.get(`${this.baseUrl}/posts/${empleado.id}/comments`);
+    }
+
     create = async (empleado: Empleado) => {
         return await axios.post(`${this.baseUrl}/posts`, empleado);
     }

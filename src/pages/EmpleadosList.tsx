@@ -3,14 +3,19 @@ import NavFilter from "../components/NavFilter";
 import EmpleadosService from "../services/EmpleadosService";
 import UsuariosService from "../services/UsuariosService";
 import Usuario from "../models/Usuario";
+import Comment from "../models/Comment";
 import LoadingSpinner from "../components/LoadingSpinner";
+// import ModalComments from "../components/ModalComments";
+import CardComments from "../components/CardComments";
 
 const EmpleadosList = () => {
 
     const [arrEmpleados, setArrEmpleados] = useState([]);
     const [arrUsuarios, setArrUsuarios] = useState<Usuario[]>([]);
+    const [arrComments, setArrComments] = useState<Comment[]>([]);
     const [filterUser, setFilterUser] = useState<Usuario[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [showComments, setShowComments] = useState<boolean>(false);
 
     const fetchData = async () => {
         const response = await (new EmpleadosService()).getAll();
@@ -58,13 +63,32 @@ const EmpleadosList = () => {
         setIsLoading(false);
     }
 
+    const fetchDataComments = async (data: any) => {
+        setIsLoading(true);
+        const response = await (new EmpleadosService()).getCommentsByPost(data).then((res) => {
+            console.log(res.data);
+            return res;
+        }).catch((error) => {
+            console.error("Error fetching comments by post:", error);
+            return { data: [] }; // Return an empty array on error
+        });
+
+        setArrComments(response.data);
+        setShowComments(true);
+        setIsLoading(false);
+    }
+
+    const handleOpenComments = (empleado: any) => {
+        fetchDataComments(empleado);
+    }
+
     useEffect(() => {
         fetchData();
         fetchDataUsers();
     }, []);
 
     useEffect(() => {
-        console.log("filterUser", filterUser);
+        //console.log("filterUser", filterUser);
         fetchDataFilter(filterUser);
     }, [filterUser]);
 
@@ -73,16 +97,30 @@ const EmpleadosList = () => {
             <NavFilter arrUsuarios={arrUsuarios} arrEmpleados={arrEmpleados} filterUser={filterUser} setFilterUser={setFilterUser} />
             {isLoading && <LoadingSpinner />}
             <div className="container">
-                <div className='empleados-list row row-cols-1 row-cols-md-5 g-3'>
+                <div className='empleados-list row row-cols-1 row-cols-md-3 g-2'>
                     {arrEmpleados.map((empleado: any) => (
                         <div key={empleado.id} className="">
+
                             <div className=' card text-bg-warning h-100'>
-                                <div className='card-body'>
-                                    <h5 className='card-title text-capitalize text-center text-truncate mb-3'>{empleado.title}</h5>
-                                    <h6 className='card-subtitle mb-2 text-muted d-none'>{empleado.userId}</h6>
-                                    <p className='card-text text-muted small text-capitalize lh-base text-truncate1'>{empleado.body}</p>
+                                <div className='card-body align-items-bottom d-flex flex-column justify-content-center'>
+                                    {arrComments && arrComments.length > 0 && arrComments[0].postId == empleado.id && showComments ? (
+                                        <CardComments arrComments={arrComments} setShowComments={setShowComments} empleado={empleado} />
+                                    ) : (
+                                        <>
+                                            <h5 className='card-title text-capitalize text-center text-truncate'>{empleado.title}</h5>
+                                            <h6 className='card-subtitle mb-2 text-muted d-none'>{empleado.userId}</h6>
+                                            <p className='card-text text-muted py-2 my-2 small text-capitalize lh-base text-truncate1'>{empleado.body}</p>
+                                            <div className="d-grid gap-2 mt-2">
+                                                <button onClick={() => handleOpenComments(empleado)} type="button" className="stretched-link btn btn-warning  shadow">Show Comments</button>
+                                            </div>
+
+                                        </>
+                                    )}
+
                                 </div>
                             </div>
+
+
                         </div>
                     ))}
                 </div>

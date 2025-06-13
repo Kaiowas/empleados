@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form";
 import clsx from 'clsx';
 import EmpleadosService from "../services/EmpleadosService";
 import UsuariosService from "../services/UsuariosService";
-import Usuario from "../models/Usuario";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -11,11 +9,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 const NuevoEmpleado = () => {
     const debug = false;
     const autoCompleteForm = debug ? true : false;
-
-
     const navigate = useNavigate();
-    const [arrUsuarios, setArrUsuarios] = useState<Usuario[]>([]);
-    const [usuariosLoaded, setUsuariosLoaded] = useState<boolean>(false);
 
     const { register, handleSubmit, formState } = useForm({
         mode: "onChange",
@@ -29,14 +23,9 @@ const NuevoEmpleado = () => {
     });
 
     const fetchData = async () => {
-        if (!usuariosLoaded) {
-            const response = await (new UsuariosService()).getAll();
-            setArrUsuarios(response.data);
-            setUsuariosLoaded(true);
-        }
+        const response = await (new UsuariosService()).getAll();
+        return response.data;
     }
-
-    //const { isLoading, error, data } = useQuery(['usuarios'], fetchData);
 
     const { data: usuarios, isLoading, error } = useQuery({
         queryKey: ["usuarios"],
@@ -54,9 +43,6 @@ const NuevoEmpleado = () => {
 
     }
 
-    useEffect(() => {
-        fetchData();
-    }, []);
 
     if (isLoading) return <LoadingSpinner />;
     if (error) return <div>Error al cargar los usuarios</div>;
@@ -85,13 +71,11 @@ const NuevoEmpleado = () => {
                             defaultValue={autoCompleteForm ? "2" : ""}
                         >
                             <option value="">Select User</option>
-                            {arrUsuarios &&
-                                usuarios?.map((item: any) => (
-                                    <option key={item.id} value={item.id} >
-                                        {item.name} ({item.username})
-                                    </option>
-                                ))
-                            }
+                            {usuarios?.map((item: any) => (
+                                <option key={item.id} value={item.id}>
+                                    {item.name} ({item.username})
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>

@@ -24,7 +24,7 @@ const NavFilter = (props: NavFilterProps) => {
             <div className="container-fluid">
                 <div>
                     <div className="badge bg-warning-subtle px-3 text-dark text-opacity-50  d-flex align-items-center justify-content-center">
-                        <span className="ms-0 fw-bold">{arrEmpleados.length} Posts</span>
+                        <span className="ms-0 fw-bold">{arrEmpleados?.length} Posts</span>
                     </div>
                     
                 </div>

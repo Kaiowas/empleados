@@ -1,32 +1,21 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import NavFilter from "../components/NavFilter";
+import { useQuery } from "@tanstack/react-query";
 import EmpleadosService from "../services/EmpleadosService";
 import UsuariosService from "../services/UsuariosService";
 import Usuario from "../models/Usuario";
 import Comment from "../models/Comment";
 import LoadingSpinner from "../components/LoadingSpinner";
-// import ModalComments from "../components/ModalComments";
 import CardComments from "../components/CardComments";
 
 const EmpleadosList = () => {
 
-    const [arrEmpleados, setArrEmpleados] = useState([]);
-    const [arrUsuarios, setArrUsuarios] = useState<Usuario[]>([]);
     const [arrComments, setArrComments] = useState<Comment[]>([]);
     const [filterUser, setFilterUser] = useState<Usuario[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showComments, setShowComments] = useState<boolean>(false);
-
-    const fetchData = async () => {
-        const response = await (new EmpleadosService()).getAll();
-        setArrEmpleados(response.data);
-    }
-
-    const [usuariosLoaded, setUsuariosLoaded] = useState<boolean>(false);
 
     const fetchDataFilter = async (data: any) => {
         let response;
-        setIsLoading(true);
         if (data[0]) {
             response = await (new EmpleadosService()).getByUser(data[0]).then((res) => {
                 return res;
@@ -43,28 +32,16 @@ const EmpleadosList = () => {
                 return { data: [] }; // Return an empty array on error
             });
         }
-
-        setArrEmpleados(response.data);
-        setIsLoading(false);
+        return response.data;
     }
 
     const fetchDataUsers = async () => {
-        setIsLoading(true);
-        if (!usuariosLoaded) {
-            const response = await (new UsuariosService()).getAll().then((res) => {
-                setUsuariosLoaded(true);
-                return res;
-            }).catch((error) => {
-                console.error("Error fetching empleados by user:", error);
-                return { data: [] }; // Return an empty array on error
-            });
-            setArrUsuarios(response.data);
-        }
-        setIsLoading(false);
+        const response = await (new UsuariosService()).getAll();
+        return response.data;
     }
 
     const fetchDataComments = async (data: any) => {
-        setIsLoading(true);
+        //setIsLoading(true);
         const response = await (new EmpleadosService()).getCommentsByPost(data).then((res) => {
             console.log(res.data);
             return res;
@@ -75,30 +52,36 @@ const EmpleadosList = () => {
 
         setArrComments(response.data);
         setShowComments(true);
-        setIsLoading(false);
+        //setIsLoading(false);
     }
 
     const handleOpenComments = (empleado: any) => {
         fetchDataComments(empleado);
     }
 
-    useEffect(() => {
-        fetchData();
-        fetchDataUsers();
-    }, []);
+    const { data: usuarios, isLoading, error } = useQuery({
+        queryKey: ["usuarios"],
+        queryFn: () => fetchDataUsers(),
+        staleTime: Infinity
+    });
 
-    useEffect(() => {
-        //console.log("filterUser", filterUser);
-        fetchDataFilter(filterUser);
-    }, [filterUser]);
+    const { data: dataFilter } = useQuery({
+        queryKey: ["dataFilter", {filterUser}],
+        queryFn: () => fetchDataFilter(filterUser),
+        staleTime: Infinity,
+        enabled: !!filterUser // Only run this query if filterUser is not empty
+    });
+
+    if (isLoading) return <LoadingSpinner />;
+    if (error) return <div>Error al cargar los usuarios</div>;
 
     return (
         <>
-            <NavFilter arrUsuarios={arrUsuarios} arrEmpleados={arrEmpleados} filterUser={filterUser} setFilterUser={setFilterUser} />
+            <NavFilter arrUsuarios={usuarios} arrEmpleados={dataFilter} filterUser={filterUser} setFilterUser={setFilterUser} />
             {isLoading && <LoadingSpinner />}
             <div className="container">
                 <div className='empleados-list row row-cols-1 row-cols-md-3 g-2'>
-                    {arrEmpleados.map((empleado: any) => (
+                    {dataFilter?.map((empleado: any) => (
                         <div key={empleado.id} className="">
 
                             <div className=' card text-bg-warning h-100'>

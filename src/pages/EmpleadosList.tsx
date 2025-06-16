@@ -7,12 +7,23 @@ import Usuario from "../models/Usuario";
 import Comment from "../models/Comment";
 import LoadingSpinner from "../components/LoadingSpinner";
 import CardComments from "../components/CardComments";
+//import bootstrap from 'bootstrap'; // Ensure you have bootstrap installed
+// import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
+// import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // Import Bootstrap JS
 
 const EmpleadosList = () => {
 
     const [arrComments, setArrComments] = useState<Comment[]>([]);
     const [filterUser, setFilterUser] = useState<Usuario[]>([]);
     const [showComments, setShowComments] = useState<boolean>(false);
+    const [isLoadingComments, setLoadingComments] = useState<boolean>(false);
+
+    // const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    // const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+    /* tooltipTriggerList.addEventListener('hidden.bs.tooltip', () => {
+        // do something...
+    }) */
 
     const fetchDataFilter = async (data: any) => {
         let response;
@@ -41,7 +52,7 @@ const EmpleadosList = () => {
     }
 
     const fetchDataComments = async (data: any) => {
-        //setIsLoading(true);
+        setLoadingComments(true);
         const response = await (new EmpleadosService()).getCommentsByPost(data).then((res) => {
             console.log(res.data);
             return res;
@@ -52,7 +63,7 @@ const EmpleadosList = () => {
 
         setArrComments(response.data);
         setShowComments(true);
-        //setIsLoading(false);
+        setLoadingComments(false);
     }
 
     const handleOpenComments = (empleado: any) => {
@@ -66,13 +77,13 @@ const EmpleadosList = () => {
     });
 
     const { data: dataFilter } = useQuery({
-        queryKey: ["dataFilter", {filterUser}],
+        queryKey: ["dataFilter", { filterUser }],
         queryFn: () => fetchDataFilter(filterUser),
         staleTime: Infinity,
         enabled: !!filterUser // Only run this query if filterUser is not empty
     });
 
-    if (isLoading) return <LoadingSpinner />;
+    if (isLoading) return <LoadingSpinner fixed={true} />;
     if (error) return <div>Error al cargar los usuarios</div>;
 
     return (
@@ -84,8 +95,9 @@ const EmpleadosList = () => {
                     {dataFilter?.map((empleado: any) => (
                         <div key={empleado.id} className="">
 
-                            <div className=' card text-bg-warning h-100'>
-                                <div className='card-body align-items-bottom d-flex flex-column justify-content-center'>
+                            <div className=' card text-bg-warning ' >
+                                <div className='card-body align-items-bottom d-flex flex-column justify-content-center position-relative' style={{ height: '300px' }}>
+                                    {isLoadingComments && empleado.id === arrComments[0]?.postId && <LoadingSpinner fixed={false} />}
                                     {arrComments && arrComments.length > 0 && arrComments[0].postId == empleado.id && showComments ? (
                                         <CardComments arrComments={arrComments} setShowComments={setShowComments} empleado={empleado} />
                                     ) : (
@@ -94,7 +106,7 @@ const EmpleadosList = () => {
                                             <h6 className='card-subtitle mb-2 text-muted d-none'>{empleado.userId}</h6>
                                             <p className='card-text text-muted py-2 my-2 small text-capitalize lh-base text-truncate1'>{empleado.body}</p>
                                             <div className="d-grid gap-2 mt-2">
-                                                <button onClick={() => handleOpenComments(empleado)} type="button" className="stretched-link btn btn-warning  shadow">Show Comments</button>
+                                                <button onClick={() => handleOpenComments(empleado)} data-bs-toggle="tooltip" data-bs-title="Default tooltip" type="button" className="stretched-link btn btn-warning  shadow">Show Comments</button>
                                             </div>
 
                                         </>
